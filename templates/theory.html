@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}theory{% endblock %}
+{% block content %}
+
+<header class="page-header">
+  <h1>how it works</h1>
+  <p>short theory + interactive visualization of the bit codes</p>
+</header>
+
+<section class="card section">
+  <h2>1. spread-spectrum idea (CDMA)</h2>
+  <p>
+    The system doesn’t “put bits into individual pixels” like LSB does.
+    Instead, each of the <b>{{ msg_bits }}</b> message bits is assigned
+    a unique random <em>±1 spatial code</em> of size
+    {{ image_size }} × {{ image_size }} that covers the whole image.
+    One bit ⇒ one code spanning the entire picture.
+  </p>
+  <p>Encoding the message into one spatial pattern:</p>
+  <pre class="formula">
+p(x, y) = (1/√N) · Σᵢ (2bᵢ − 1) · cᵢ(x, y)
+  </pre>
+  <p>
+    where bᵢ ∈ {0,1} is the i-th bit, (2bᵢ−1) ∈ {−1,+1} is its BPSK sign,
+    and cᵢ is the fixed random ±1 code for that bit.
+  </p>
+</section>
+
+<section class="card section">
+  <h2>2. decoding — matched filter</h2>
+  <p>
+    The decoder doesn’t “guess” bits — it correlates the recovered pattern
+    against every code. The logit for bit i:
+  </p>
+  <pre class="formula">
+ℓᵢ = (1/√(HW)) · Σ(x,y) p̂(x, y) · cᵢ(x, y)
+  </pre>
+  <p>
+    The sign of ℓᵢ gives the bit. SNR per bit grows by a factor of
+    √(HW) = 256 thanks to summing over 65 536 pixels — that’s why a tiny
+    residual (5 % of pixel range) still gives ≈ 100 % decoding accuracy.
+  </p>
+</section>
+
+<section class="card section">
+  <h2>3. bit codes — live visualization</h2>
+  <p>
+    below — the first 8 of {{ msg_bits }} ±1 codes cᵢ that live inside the
+    encoder and decoder. Black = −1, white = +1. All codes are generated
+    from a single deterministic seed (1337), so encoder and decoder see
+    the exact same set.
+  </p>
+  <div id="codes_grid" class="codes-grid">
+    <p class="empty-hint">loading codes…</p>
+  </div>
+</section>
+
+<section class="card section">
+  <h2>4. loss function and warm-up schedule</h2>
+  <p>Training loss is a combination of message BCE and image L1:</p>
+  <pre class="formula">
+L = w_msg · BCE(ℓ̂, b) + w_img(t) · ‖S − C‖₁
+
+w_msg = 5.0,  w_img (target) = 0.3
+
+w_img(t) = {
+   0,                                  if t < 300
+   w_img · (t − 300) / 400,            if 300 ≤ t < 700
+   w_img,                              if t ≥ 700
+}
+  </pre>
+  <p>
+    For the first 300 steps the encoder is rewarded <em>only</em> for being
+    decodable (image-loss = 0). Otherwise it would collapse to a zero
+    residual — image-loss would go to zero but bit-acc would stay at chance.
+  </p>
+</section>
+
+<section class="card section">
+  <h2>5. full pipeline</h2>
+  <pre class="ascii-art">
+   ┌─────────┐    ┌───────────┐    ┌───────┐    ┌────────────┐    ┌───────────┐    ┌─────────┐
+   │  cover  │    │  encoder  │    │ stego │    │ distortion │    │  decoder  │    │   m̂     │
+   │ +  msg  │───▶│ refine net│───▶│       │───▶│ (training  │───▶│ CNN +     │───▶│  bits   │
+   │         │    │ + ±1 codes│    │       │    │ only)      │    │ matched   │    │         │
+   └─────────┘    └───────────┘    └───────┘    └────────────┘    │  filter   │    └─────────┘
+                                                                  └───────────┘
+  </pre>
+</section>
+
+{% endblock %}
+{% block scripts %}
+<script>
+  (async () => {
+    const grid = document.getElementById('codes_grid');
+    try {
+      const r = await fetch('/api/codes?n=8');
+      const j = await r.json();
+      grid.innerHTML = '';
+      for (const c of j.codes) {
+        const fig = document.createElement('figure');
+        fig.className = 'bit-code';
+        fig.innerHTML = `<img src="${c.image}" alt="code ${c.i}"/>
+                         <figcaption>c<sub>${c.i}</sub></figcaption>`;
+        grid.appendChild(fig);
+      }
+    } catch (e) {
+      grid.innerHTML = '<p class="empty-hint">couldn’t load codes: ' + e.message + '</p>';
+    }
+  })();
+</script>
+{% endblock %}

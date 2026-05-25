@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}about{% endblock %}
+{% block content %}
+
+<header class="hero">
+  <h1>stegawand</h1>
+  <p class="hero-sub">
+    soft neural steganography — hide up to {{ max_chars }} ASCII chars in any image
+    with built-in compensation for distortions during transmission
+  </p>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="{{ url_for('page_encode') }}">try encoding</a>
+    <a class="btn btn-ghost"   href="{{ url_for('page_theory') }}">how it works</a>
+  </div>
+</header>
+
+<section class="card section">
+  <h2>what it is</h2>
+  <p>
+    stegawand is a neural steganography project trained on an Apple Silicon M2
+    laptop — no servers, no paid APIs. It takes any RGB image and embeds an
+    almost-invisible spatial pattern (residual) that carries a binary message.
+    The decoder reads the message back even after the image has been hit by
+    typical transmission distortions: messenger compression, resize,
+    grayscale conversion, photographing the screen with a camera.
+  </p>
+</section>
+
+<section class="grid features">
+  <article class="card feature">
+    <span class="feature-icon">⊹</span>
+    <h3>CDMA spread spectrum</h3>
+    <p>
+      every bit is spread across the entire image with a unique random
+      ±1 code. no pixel “owns” a single bit — full spatial distribution,
+      no cells, no blocks.
+    </p>
+  </article>
+  <article class="card feature">
+    <span class="feature-icon">✿</span>
+    <h3>content-aware residual</h3>
+    <p>
+      brightness and texture masks hide the perturbation in regions where
+      the human eye is least sensitive. amplitude capped at 5 % of pixel
+      range.
+    </p>
+  </article>
+  <article class="card feature">
+    <span class="feature-icon">⌘</span>
+    <h3>distortion-resistant</h3>
+    <p>
+      trained with 4 differentiable distortions: gaussian noise, blur 5 × 5,
+      grayscale, fake-JPEG. survives Telegram, WhatsApp, Instagram and
+      screenshots.
+    </p>
+  </article>
+  <article class="card feature">
+    <span class="feature-icon">♡</span>
+    <h3>light on M2</h3>
+    <p>
+      ~92 K trainable parameters. full training (12 epochs) takes ~10 min
+      on MPS. inference under 50 ms per 256 × 256 image.
+    </p>
+  </article>
+</section>
+
+<section class="card section">
+  <h2>how to use</h2>
+  <ol class="howto">
+    <li><a href="{{ url_for('page_encode') }}"><b>encode</b></a> —
+        pick any image, type a secret up to {{ max_chars }} ASCII chars,
+        get back the stego image plus decoding through each distortion separately.</li>
+    <li><a href="{{ url_for('page_decode') }}"><b>decode</b></a> —
+        upload a stego image (e.g. one you got back from a Telegram chat)
+        and recover the hidden message.</li>
+    <li><a href="{{ url_for('page_stress') }}"><b>stress test</b></a> —
+        slide an intensity knob to find the threshold where the decoder
+        breaks. great for understanding the model’s robustness limits.</li>
+    <li><a href="{{ url_for('page_theory') }}"><b>theory</b></a> —
+        formulas, pipeline diagram, visualization of the random ±1 codes,
+        matched-filter decoder explained.</li>
+  </ol>
+</section>
+
+<section class="card section stats">
+  <h2>numbers</h2>
+  <div class="stat-grid">
+    <div class="stat">
+      <span class="num">{{ msg_bits }}</span>
+      <span class="lbl">bits of payload</span>
+    </div>
+    <div class="stat">
+      <span class="num">{{ image_size }}×{{ image_size }}</span>
+      <span class="lbl">container size</span>
+    </div>
+    <div class="stat">
+      <span class="num">≈ 100 %</span>
+      <span class="lbl">clean bit-accuracy</span>
+    </div>
+    <div class="stat">
+      <span class="num">~ 38 dB</span>
+      <span class="lbl">cover/stego PSNR</span>
+    </div>
+    <div class="stat">
+      <span class="num">256×</span>
+      <span class="lbl">matched-filter SNR gain</span>
+    </div>
+    <div class="stat">
+      <span class="num">4</span>
+      <span class="lbl">trained distortion types</span>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

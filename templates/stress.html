@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}stress test{% endblock %}
+{% block content %}
+
+<header class="page-header">
+  <h1>stress test: combined distortions</h1>
+  <p>enable multiple distortions at once and slide the intensity knob —
+     find the threshold where decoding breaks</p>
+</header>
+
+<div class="two-col">
+
+  <section class="card controls">
+    <div class="dropzone" id="drop" tabindex="0">
+      <p><b>drop an image here</b><br/><span>or click to choose</span></p>
+      <input type="file" id="file" accept="image/*" hidden />
+    </div>
+
+    <label class="lbl">secret
+      <input type="text" id="message" maxlength="{{ max_chars }}"
+             placeholder="hello" value="hello" autocomplete="off" />
+    </label>
+
+    <fieldset>
+      <legend>distortions (all enabled ones are combined)</legend>
+      <small class="hint">this is NOT “one at a time” like the encode page —
+        every selected distortion is applied together to the same stego</small>
+      <label class="chk"><input type="checkbox" id="d_noise" checked /> gaussian noise</label>
+      <label class="chk"><input type="checkbox" id="d_blur" checked /> gaussian blur</label>
+      <label class="chk"><input type="checkbox" id="d_gray" /> grayscale</label>
+      <label class="chk"><input type="checkbox" id="d_jpeg" checked /> jpeg compression</label>
+    </fieldset>
+
+    <label class="lbl big-slider">
+      distortion intensity  <span class="big-val" id="vIntensity">1.00×</span>
+      <input type="range" id="sIntensity" min="0" max="3" step="0.05" value="1.0" />
+      <small class="muted">
+        1.0× = training values (σ=0.02, blur σ=1.0, jpeg q=75).
+        2.0× = double noise/blur, jpeg q=45. 3.0× = far past the threshold.
+      </small>
+    </label>
+
+    <button id="run" class="btn btn-primary full">run</button>
+    <button id="sweep" class="btn btn-ghost full">auto-sweep → find threshold</button>
+    <p class="status" id="status"></p>
+  </section>
+
+  <section class="results">
+
+    <div class="row encoder-row">
+      <div class="card preview"><h3>cover</h3><img id="i_cover" alt="cover" /></div>
+      <div class="card preview">
+        <h3>stego
+          <a id="dl_stego" class="dl-link" download="stego.png" hidden>↓ download</a>
+        </h3>
+        <img id="i_stego" alt="stego" />
+      </div>
+      <div class="card preview"><h3>after distortion</h3><img id="i_dist" alt="distorted" /></div>
+    </div>
+
+    <div class="card stress-result" id="stress_result" hidden>
+      <div class="big-result">
+        <div>
+          <span class="muted">decoded:</span>
+          <code class="big-text" id="decoded_text">—</code>
+        </div>
+        <div>
+          <span class="muted">expected:</span>
+          <code class="big-text" id="expected_text">—</code>
+        </div>
+        <div>
+          <span class="muted">bit-acc:</span>
+          <span class="big-acc" id="bit_acc">—</span>
+        </div>
+      </div>
+
+      <div class="effective">
+        <span>effective parameters at this intensity:</span>
+        <code id="eff_noise">σ_noise=—</code>
+        <code id="eff_blur">σ_blur=—</code>
+        <code id="eff_jpeg">jpeg q=—</code>
+      </div>
+
+      <div class="bit-row">
+        <span class="bit-row-label">encoded:</span>
+        <code id="encoded_bits" class="bit-stream"></code>
+      </div>
+      <div class="bit-row">
+        <span class="bit-row-label">decoded:</span>
+        <code id="decoded_bits" class="bit-stream"></code>
+      </div>
+    </div>
+
+    <div class="card stress-chart" id="sweep_chart_wrap" hidden>
+      <h3>auto-sweep: bit-acc vs intensity</h3>
+      <p class="muted">each point is a full encode → distort → decode run</p>
+      <canvas id="sweep_canvas" width="780" height="280"></canvas>
+      <table class="sweep-table" id="sweep_table"></table>
+    </div>
+
+  </section>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='stress.js') }}"></script>
+{% endblock %}

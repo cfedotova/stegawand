@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>stegawand · neural steganography</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header>
+    <h1>stegawand</h1>
+    <p class="sub">tiny neural steganography &middot; type a secret, drop an image</p>
+    {% if not model_loaded %}
+      <p class="warn">no checkpoint loaded · run <code>python train.py</code> first</p>
+    {% endif %}
+  </header>
+
+  <main>
+
+    <section class="card controls">
+      <div class="dropzone" id="drop" tabindex="0">
+        <p><b>drop an image here</b><br/><span>or click to choose</span></p>
+        <input type="file" id="file" accept="image/*" hidden />
+      </div>
+
+      <label class="lbl">secret message
+        <small>up to {{ max_chars }} ASCII chars</small>
+        <input type="text" id="message" maxlength="{{ max_chars }}"
+               placeholder="hi kitty" autocomplete="off" />
+      </label>
+
+      <fieldset>
+        <legend>distortions to test</legend>
+        <small class="hint">each one is applied separately so you can see the
+          model decode through each independently.</small>
+        <label class="chk"><input type="checkbox" id="d_blur" /> gaussian blur</label>
+        <label class="chk"><input type="checkbox" id="d_noise" /> gaussian noise</label>
+        <label class="chk"><input type="checkbox" id="d_gray" /> grayscale</label>
+        <label class="chk"><input type="checkbox" id="d_jpeg" /> jpeg-like</label>
+      </fieldset>
+
+      <label class="chk smooth">
+        <input type="checkbox" id="smooth" /> smooth residual
+        <small>(extra blur — softens residual but lowers bit-acc)</small>
+      </label>
+
+      <button id="run">hide &amp; decode</button>
+      <p class="status" id="status"></p>
+    </section>
+
+    <section class="results">
+      <div class="row encoder-row">
+        <div class="card preview"><h3>cover</h3><img id="i_cover" alt="cover" /></div>
+        <div class="card preview"><h3>stego (cover + secret)</h3><img id="i_stego" alt="stego" /></div>
+        <div class="card preview"><h3>residual &times;5</h3><img id="i_res" alt="residual" /></div>
+      </div>
+      <p class="metrics" id="psnr_line"></p>
+
+      <h2 class="section-title">decoded through each distortion</h2>
+      <div class="row distortion-row" id="distortion_grid">
+        <p class="empty-hint">run the model to see decoded results per distortion</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>made for coursework &middot; runs on M2 / MPS</footer>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

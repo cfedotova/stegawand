@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}encode{% endblock %}
+{% block content %}
+
+<header class="page-header">
+  <h1>encode a message</h1>
+  <p>hide up to {{ max_chars }} ASCII chars in any image and check how the
+     model decodes through each distortion separately</p>
+</header>
+
+<div class="two-col">
+
+  <section class="card controls">
+    <div class="dropzone" id="drop" tabindex="0">
+      <p><b>drop an image here</b><br/><span>or click to choose</span></p>
+      <input type="file" id="file" accept="image/*" hidden />
+    </div>
+
+    <label class="lbl">secret message
+      <small>up to {{ max_chars }} ASCII chars</small>
+      <input type="text" id="message" maxlength="{{ max_chars }}"
+             placeholder="hello" value="hello" autocomplete="off" />
+    </label>
+
+    <fieldset>
+      <legend>distortions to test</legend>
+      <small class="hint">each one is applied separately so you can see
+        the model decode through each independently</small>
+      <label class="chk"><input type="checkbox" id="d_blur" /> gaussian blur</label>
+      <label class="chk"><input type="checkbox" id="d_noise" /> gaussian noise</label>
+      <label class="chk"><input type="checkbox" id="d_gray" /> grayscale</label>
+      <label class="chk"><input type="checkbox" id="d_jpeg" /> jpeg compression</label>
+    </fieldset>
+
+    <small class="hint">
+      residual is automatically smoothed with a 5 × 5 gaussian (σ = 1.0)
+      for softer visual artefact — spread-spectrum matched-filter decoding
+      keeps working through it.
+    </small>
+
+    <button id="run" class="btn btn-primary full">hide &amp; decode</button>
+    <p class="status" id="status"></p>
+  </section>
+
+  <section class="results">
+
+    <div class="row encoder-row">
+      <div class="card preview"><h3>cover</h3><img id="i_cover" alt="cover" /></div>
+      <div class="card preview">
+        <h3>stego <a id="download_stego" class="dl-link" download="stego.png" hidden>↓ download</a></h3>
+        <img id="i_stego" alt="stego" />
+      </div>
+      <div class="card preview"><h3>residual ×5</h3><img id="i_res" alt="residual" /></div>
+    </div>
+    <p class="metrics" id="psnr_line"></p>
+
+    <section class="card bit-compare" id="bit_compare_wrap" hidden>
+      <h3>bit comparison</h3>
+      <p class="small-hint">
+        for every result — green = match with original, red = bit flip
+      </p>
+      <div class="bit-row">
+        <span class="bit-row-label">encoded:</span>
+        <code id="encoded_bits" class="bit-stream"></code>
+      </div>
+      <div id="decoded_streams"></div>
+    </section>
+
+    <h2 class="section-title">decoded through each distortion</h2>
+    <div class="row distortion-row" id="distortion_grid">
+      <p class="empty-hint">run the model to see the per-distortion results</p>
+    </div>
+
+  </section>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='encode.js') }}"></script>
+{% endblock %}

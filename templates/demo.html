@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}demo{% endblock %}
+{% block content %}
+
+<header class="page-header">
+  <h1>full pipeline demo</h1>
+  <p>every output of the system in one place — designed for coursework
+     screenshots. all four distortions are tested, and a downloadable
+     stego image is provided.</p>
+</header>
+
+<section class="card section">
+  <div class="demo-controls">
+    <div>
+      <label class="lbl" for="file">cover image
+        <small>auto-loaded sample, or drop your own</small>
+      </label>
+      <div class="dropzone small" id="drop" tabindex="0">
+        <p><b>drop image here</b> · or click</p>
+        <input type="file" id="file" accept="image/*" hidden />
+      </div>
+    </div>
+    <div>
+      <label class="lbl" for="message">secret message
+        <small>up to {{ max_chars }} ASCII chars</small>
+      </label>
+      <input type="text" id="message" maxlength="{{ max_chars }}"
+             placeholder="hello" value="hello" autocomplete="off" />
+    </div>
+    <div class="demo-actions">
+      <button id="run"    class="btn btn-primary">run full demo</button>
+      <button id="newImg" class="btn btn-ghost">new sample image</button>
+    </div>
+  </div>
+  <p class="status" id="status">loading sample image…</p>
+</section>
+
+<section class="card section demo-section">
+  <h2>1. encoder output</h2>
+  <p class="muted">
+    cover image, stego image (with secret embedded), and 5×-amplified
+    residual showing where the network placed perturbation
+  </p>
+  <div class="row encoder-row">
+    <figure class="card preview">
+      <h3>cover</h3>
+      <img id="i_cover" alt="cover"/>
+    </figure>
+    <figure class="card preview">
+      <h3>stego
+        <a id="dl_stego" class="dl-link" download="stego.png" hidden>↓ download PNG</a>
+      </h3>
+      <img id="i_stego" alt="stego"/>
+    </figure>
+    <figure class="card preview">
+      <h3>residual ×5</h3>
+      <img id="i_res" alt="residual"/>
+    </figure>
+  </div>
+  <p class="metrics centered" id="psnr_line">—</p>
+</section>
+
+<section class="card section demo-section">
+  <h2>2. bits — encoded vs decoded (clean)</h2>
+  <p class="muted">red = bit-flip after the round-trip. with smooth residual
+     on by default, expect at most a small handful of flips even on clean.</p>
+  <div class="bit-row big">
+    <span class="bit-row-label">encoded:</span>
+    <code id="b_encoded" class="bit-stream"></code>
+  </div>
+  <div class="bit-row big">
+    <span class="bit-row-label">decoded:</span>
+    <code id="b_decoded" class="bit-stream"></code>
+  </div>
+</section>
+
+<section class="card section demo-section">
+  <h2>3. distortion gauntlet</h2>
+  <p class="muted">the same stego is independently passed through each of the four
+     trained distortions plus a clean reference. each card shows the
+     decoder’s read-out and bit-accuracy.</p>
+  <div class="row distortion-row" id="dgrid">
+    <p class="empty-hint">running…</p>
+  </div>
+</section>
+
+<section class="card section demo-section">
+  <h2>4. summary</h2>
+  <table class="summary-table" id="summary_table">
+    <thead><tr>
+      <th>distortion</th><th>parameters</th><th>bit-acc</th><th>decoded text</th>
+    </tr></thead>
+    <tbody><tr><td colspan="4" class="empty-hint">waiting for run…</td></tr></tbody>
+  </table>
+  <p class="muted" id="footnote" hidden>
+    residual is auto-smoothed with a 5 × 5 gaussian (σ = 1.0) before being
+    added to the cover; the spread-spectrum matched filter still recovers
+    the message thanks to the √(H·W) = 256 SNR gain.
+  </p>
+</section>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='demo.js') }}"></script>
+{% endblock %}

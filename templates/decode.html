@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}decode{% endblock %}
+{% block content %}
+
+<header class="page-header">
+  <h1>decode a stego image</h1>
+  <p>upload an image that already contains a hidden message
+     (e.g. one you got back from a messenger) — see the recovered text</p>
+</header>
+
+<div class="two-col">
+
+  <section class="card controls">
+    <div class="dropzone" id="drop" tabindex="0">
+      <p><b>drop a stego image here</b><br/><span>or click to choose</span></p>
+      <input type="file" id="file" accept="image/*" hidden />
+    </div>
+
+    <fieldset>
+      <legend>optional: distort before decoding</legend>
+      <small class="hint">for robustness testing — leave all off to just
+        pass the image straight into the decoder</small>
+      <label class="chk"><input type="checkbox" id="d_blur" /> gaussian blur</label>
+      <label class="chk"><input type="checkbox" id="d_noise" /> gaussian noise</label>
+      <label class="chk"><input type="checkbox" id="d_gray" /> grayscale</label>
+      <label class="chk"><input type="checkbox" id="d_jpeg" /> jpeg compression</label>
+    </fieldset>
+
+    <button id="run" class="btn btn-primary full">decode</button>
+    <p class="status" id="status"></p>
+  </section>
+
+  <section class="results">
+
+    <div class="row encoder-row two">
+      <div class="card preview"><h3>input image</h3><img id="i_input" alt="input" /></div>
+      <div class="card decode-result">
+        <h3>decoded message</h3>
+        <div id="decoded_text" class="decoded-big">—</div>
+        <small class="muted">{{ msg_bits }} bits read by the decoder</small>
+      </div>
+    </div>
+
+    <section class="card bit-compare" id="bit_compare_wrap" hidden>
+      <h3>recovered bits</h3>
+      <div class="bit-row">
+        <span class="bit-row-label">decoded:</span>
+        <code id="decoded_bits" class="bit-stream"></code>
+      </div>
+      <small class="muted">
+        no ground-truth comparison here (you didn't tell us what was originally
+        encoded) — for a full round-trip diff use the
+        <a href="{{ url_for('page_encode') }}">encode</a> page.
+      </small>
+    </section>
+
+  </section>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='decode.js') }}"></script>
+{% endblock %}

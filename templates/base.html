@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}stegawand{% endblock %} · neural steganography</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <nav class="topnav">
+    <a href="{{ url_for('page_about') }}" class="brand">
+      <span class="logo">✿</span> stegawand
+    </a>
+    <ul class="menu">
+      <li><a href="{{ url_for('page_about') }}"  class="{% if active=='about' %}is-active{% endif %}">about</a></li>
+      <li><a href="{{ url_for('page_encode') }}" class="{% if active=='encode' %}is-active{% endif %}">encode</a></li>
+      <li><a href="{{ url_for('page_decode') }}" class="{% if active=='decode' %}is-active{% endif %}">decode</a></li>
+      <li><a href="{{ url_for('page_stress') }}" class="{% if active=='stress' %}is-active{% endif %}">stress test</a></li>
+      <li><a href="{{ url_for('page_demo') }}"   class="{% if active=='demo'   %}is-active{% endif %}">demo</a></li>
+      <li><a href="{{ url_for('page_theory') }}" class="{% if active=='theory' %}is-active{% endif %}">theory</a></li>
+    </ul>
+    {% if not model_loaded %}
+      <span class="model-badge bad">model not loaded</span>
+    {% else %}
+      <span class="model-badge ok">model ready</span>
+    {% endif %}
+  </nav>
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="page-footer">
+    made for coursework · runs locally on M2 / MPS · {{ msg_bits }}-bit steganography
+  </footer>
+
+  <script src="{{ url_for('static', filename='common.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
